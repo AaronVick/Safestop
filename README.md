@@ -171,6 +171,60 @@ Safestop encodes this vocabulary and design spine in a protocol: governance as a
 
 ---
 
+## Protocol at a glance
+
+<p align="center">
+  <img src="public/2.png" width="880" alt="Quiet errors vs loud errors" />
+</p>
+
+<p align="center">
+  <img src="public/3.png" width="880" alt="Governance as middleware: boundedness, reversibility, contestability" />
+</p>
+
+<p align="center">
+  <img src="public/4.png" width="880" alt="Six required artifacts (schemas validated in CI/CD)" />
+</p>
+
+### The six artifacts (shown in detail)
+
+<p align="center">
+  <img src="public/5.png" width="880" alt="Authority Boundary (quantified limits + forbidden actions)" />
+</p>
+
+<p align="center">
+  <img src="public/6.png" width="880" alt="Ambiguity Handling (explicit routing for uncertainty)" />
+</p>
+
+<p align="center">
+  <img src="public/7.png" width="880" alt="Contest Path (API of disagreement + SLAs)" />
+</p>
+
+<p align="center">
+  <img src="public/8.png" width="880" alt="Reversibility Plan (commit points + safe stop)" />
+</p>
+
+<p align="center">
+  <img src="public/9.png" width="880" alt="Decision Receipt (structured legibility vs raw logs)" />
+</p>
+
+<p align="center">
+  <img src="public/10.png" width="880" alt="Ownership & Escalation (supervisor as steward)" />
+</p>
+
+### Validation + runtime enforcement
+
+<p align="center">
+  <img src="public/11.png" width="880" alt="Architecture: validate at build time, enforce at runtime" />
+</p>
+
+### Executive view
+
+<p align="center">
+  <img src="public/15.png" width="880" alt="Executive checklist: bounds, safe stops, contestability, ownership" />
+</p>
+
+--
+
 ## Compliance mapping
 
 Safestop artifacts map to:
