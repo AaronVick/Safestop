@@ -1,0 +1,10 @@
+{
+  "name": "@safestop/openclaw",
+  "version": "0.1.0",
+  "description": "Safestop skill for OpenClaw",
+  "private": true,
+  "scripts": {
+    "build": "echo 'No build step for skill'",
+    "test": "echo 'No tests for skill'"
+  }
+}

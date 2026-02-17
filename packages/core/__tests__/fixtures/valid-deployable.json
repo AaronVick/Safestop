@@ -1,0 +1,94 @@
+{
+  "version": "1.2",
+  "mode": "standard",
+  "deployable": true,
+  "authority_boundary": {
+    "scope": "Invoice approval for vendor payments under 5000 USD",
+    "allowed_actions": ["approve_invoice", "request_clarification"],
+    "forbidden_actions": ["modify_vendor_records", "initiate_wire_transfer"],
+    "maximum_impact": "Single invoice approval up to 5000 USD",
+    "escalation_trigger": "Invoice above 5000 USD or disputed vendor",
+    "quantified_limits": {
+      "record_limit": 1,
+      "data_sensitivity": "confidential",
+      "blast_radius_metric": "single_vendor_payment"
+    }
+  },
+  "ambiguity_handling": {
+    "what_counts_as_ambiguous": ["Missing line items", "Vendor not in system"],
+    "routing_choice": "human_decision",
+    "why_this_placement": "Financial impact requires human judgment when data is unclear.",
+    "what_happens_while_waiting": "Invoice held in queue; no action taken"
+  },
+  "contest_path": {
+    "who_can_contest": ["vendor_contact", "finance_team"],
+    "how_to_contest": "Submit appeal via vendor portal with supporting docs",
+    "what_changes_the_result": ["Corrected amount", "Duplicate invoice proof"],
+    "evidence_requirements": [
+      { "type": "document_upload", "from_role": "vendor_contact" }
+    ],
+    "time_to_response": "2 business days",
+    "during_contest_behavior": "paused",
+    "sla_consequences": { "on_breach": "escalate_only", "escalate_to": "finance_director" }
+  },
+  "reversibility_plan": {
+    "safe_stop": "Disable auto-approval flag; all new invoices route to human",
+    "commit_points": [
+      {
+        "name": "before_payment_commit",
+        "what_commits_here": "Database write that marks invoice as approved",
+        "approval_required": true
+      }
+    ],
+    "undo_strategy": { "type": "compensation", "details": "Reverse approval and notify vendor; manual correction if payment already sent" },
+    "runaway_guardrails": ["Max 10 approvals per hour per vendor", { "type": "rate_limit", "max_actions_per_minute": 5 }],
+    "human_stop_authority": { "who": "Finance lead", "how": "Toggle in admin dashboard or on-call runbook" },
+    "irreversible_actions": [],
+    "partial_action_states": [
+      {
+        "state_name": "approved_not_paid",
+        "what_is_done": "Invoice marked approved in system",
+        "what_is_reversible": "Approval status can be reverted",
+        "what_requires_compensation": "If payment already initiated"
+      }
+    ]
+  },
+  "decision_receipt": {
+    "plain_language": {
+      "what_happened": "Invoice INV-001 approved for 3500 USD",
+      "why": "Within limit and vendor matched; no ambiguity",
+      "what_it_relied_on": "Vendor master data and invoice line items",
+      "who_or_what_approved": "Rule-based auto-approval",
+      "how_to_challenge": "Submit appeal via vendor portal within 14 days",
+      "how_to_undo_or_stop": "Finance lead can reverse in admin",
+      "who_owns_outcome": "Finance operations team"
+    },
+    "machine_readable": {
+      "decision_id": "inv-001-abc12",
+      "timestamp": "2026-01-15T10:00:00Z",
+      "decision": "approve",
+      "action": "mark_approved",
+      "reason_codes": ["within_limit", "vendor_verified"],
+      "inputs_summary": "Invoice INV-001, vendor V123, amount 3500 USD",
+      "policy_reference": "invoice-approval-v1",
+      "approval": { "type": "rule_based", "by": "safestop-invoice-agent" },
+      "contest_reference": "/contests/inv-001-abc12",
+      "undo_reference": "/undo/inv-001-abc12",
+      "owner_reference": "finance-ops",
+      "retention_policy": { "duration": "7y", "basis": "regulatory" },
+      "discovery_api": "GET /receipts?decision_id=inv-001-abc12",
+      "export_format": "jsonl"
+    }
+  },
+  "ownership_and_escalation": {
+    "accountable_owner": "Finance operations team lead",
+    "escalation_rule": "Contest received or error rate above 5%",
+    "on_call_expectation": "Acknowledge within 1 hour; resolve or escalate within 24h",
+    "audit_cadence": "Weekly review of contested and reversed decisions",
+    "handoff_protocol": {
+      "rotation_model": "Weekly rotation",
+      "handoff_steps": ["Update runbook", "Confirm with incoming lead"],
+      "where_recorded": "Team wiki and PagerDuty"
+    }
+  }
+}

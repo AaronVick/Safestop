@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safestop-langchain"
+version = "0.1.0"
+description = "LangChain integration for Safestop governance artifacts"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jsonschema>=4.20.0",
+    "langchain-core>=0.2.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["safestop_langchain*"]
+
+[tool.setuptools.package-data]
+safestop_langchain = ["schema/*.json"]

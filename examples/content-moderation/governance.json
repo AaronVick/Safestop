@@ -1,0 +1,98 @@
+{
+  "version": "1.2",
+  "mode": "standard",
+  "deployable": true,
+  "authority_boundary": {
+    "scope": "Automated content moderation for user-generated posts; flag or hide only",
+    "allowed_actions": ["flag_post", "hide_from_feed", "notify_moderator"],
+    "forbidden_actions": ["delete_user", "ban_account", "edit_content"],
+    "maximum_impact": "Single post hidden from feed; user can appeal",
+    "escalation_trigger": "High-confidence policy violation or user appeal",
+    "quantified_limits": {
+      "record_limit": 1,
+      "data_sensitivity": "internal",
+      "blast_radius_metric": "single_post_visibility"
+    }
+  },
+  "ambiguity_handling": {
+    "what_counts_as_ambiguous": ["Sarcasm", "Context-dependent policy", "New policy edge case"],
+    "routing_choice": "human_decision",
+    "why_this_placement": "Content moderation decisions that affect users must have human review when unclear.",
+    "what_happens_while_waiting": "Post remains visible; queued for human review"
+  },
+  "contest_path": {
+    "who_can_contest": ["content_author", "moderator"],
+    "how_to_contest": "Appeal via in-app form with optional explanation",
+    "what_changes_the_result": ["Overturn mistaken flag", "Policy exception granted"],
+    "evidence_requirements": [{ "type": "human_attestation", "from_role": "moderator" }],
+    "time_to_response": "24 hours",
+    "during_contest_behavior": "held_safe_mode",
+    "sla_consequences": { "on_breach": "escalate_only", "escalate_to": "moderation_lead" }
+  },
+  "reversibility_plan": {
+    "safe_stop": "Disable auto-hide; all new flags route to human queue only",
+    "commit_points": [
+      {
+        "name": "before_hide_commit",
+        "what_commits_here": "Post visibility changed in database",
+        "approval_required": false
+      }
+    ],
+    "undo_strategy": {
+      "type": "direct_rollback",
+      "details": "Restore post visibility and clear flag; notify user of appeal outcome"
+    },
+    "runaway_guardrails": [
+      "Max 100 actions per minute per moderator",
+      { "type": "rate_limit", "max_actions_per_minute": 30 }
+    ],
+    "human_stop_authority": { "who": "Moderation lead", "how": "Kill switch in admin panel" },
+    "irreversible_actions": [],
+    "partial_action_states": [
+      {
+        "state_name": "flagged_not_hidden",
+        "what_is_done": "Post flagged in system",
+        "what_is_reversible": "Flag can be cleared",
+        "what_requires_compensation": "If post was already hidden and seen by fewer users"
+      }
+    ]
+  },
+  "decision_receipt": {
+    "plain_language": {
+      "what_happened": "Post P-123 flagged and hidden for policy violation",
+      "why": "Classifier matched policy category; confidence above threshold",
+      "what_it_relied_on": "Post text and classifier output",
+      "who_or_what_approved": "Automated rule with human-review queue",
+      "how_to_challenge": "Submit appeal in app within 30 days",
+      "how_to_undo_or_stop": "Moderator can restore and clear flag",
+      "who_owns_outcome": "Content moderation team"
+    },
+    "machine_readable": {
+      "decision_id": "mod-001-xyz78",
+      "timestamp": "2026-01-15T12:00:00Z",
+      "decision": "hide",
+      "action": "hide_from_feed",
+      "reason_codes": ["policy_match", "confidence_high"],
+      "inputs_summary": "Post P-123, classifier score 0.92",
+      "policy_reference": "content-policy-v2",
+      "approval": { "type": "rule_based", "by": "safestop-mod-agent" },
+      "contest_reference": "/contests/mod-001-xyz78",
+      "undo_reference": "/undo/mod-001-xyz78",
+      "owner_reference": "mod-team",
+      "retention_policy": { "duration": "2y", "basis": "policy" },
+      "discovery_api": "GET /receipts?decision_id=mod-001-xyz78",
+      "export_format": "jsonl"
+    }
+  },
+  "ownership_and_escalation": {
+    "accountable_owner": "Content moderation team lead",
+    "escalation_rule": "Appeal volume spike or classifier error rate above 10%",
+    "on_call_expectation": "Review appeals within 24h; escalate to policy if needed",
+    "audit_cadence": "Weekly review of appeals and overturns",
+    "handoff_protocol": {
+      "rotation_model": "Daily on-call",
+      "handoff_steps": ["Handoff log", "Outstanding appeals list"],
+      "where_recorded": "Team Slack and wiki"
+    }
+  }
+}

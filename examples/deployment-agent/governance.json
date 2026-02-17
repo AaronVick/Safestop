@@ -1,0 +1,99 @@
+{
+  "version": "1.2",
+  "mode": "standard",
+  "deployable": true,
+  "authority_boundary": {
+    "scope": "Deploy approved service versions to staging; production requires manual gate",
+    "allowed_actions": ["deploy_to_staging", "run_smoke_tests", "create_rollback_tag"],
+    "forbidden_actions": ["deploy_to_production", "delete_resources", "modify_secrets"],
+    "maximum_impact": "Single service deployed to staging environment only",
+    "escalation_trigger": "Deploy to production or any failure in smoke tests",
+    "quantified_limits": {
+      "record_limit": 1,
+      "data_sensitivity": "internal",
+      "blast_radius_metric": "single_staging_deployment"
+    }
+  },
+  "ambiguity_handling": {
+    "what_counts_as_ambiguous": ["Version not in approval list", "Config drift detected", "Unclear rollback target"],
+    "routing_choice": "human_decision",
+    "why_this_placement": "Deployment affects availability; unclear cases must be approved by humans.",
+    "what_happens_while_waiting": "No deploy; agent holds and reports status"
+  },
+  "contest_path": {
+    "who_can_contest": ["release_manager", "service_owner"],
+    "how_to_contest": "Cancel deployment in CI UI or run rollback pipeline",
+    "what_changes_the_result": ["Rollback to previous version", "Abort and re-run after fix"],
+    "evidence_requirements": [{ "type": "system_verification", "api_endpoint": "/api/rollback" }],
+    "time_to_response": "Immediate (runbook)",
+    "during_contest_behavior": "paused",
+    "sla_consequences": { "on_breach": "auto_pause", "escalate_to": "platform_lead" }
+  },
+  "reversibility_plan": {
+    "safe_stop": "Pause pipeline; no further steps run; rollback available",
+    "commit_points": [
+      {
+        "name": "before_staging_deploy",
+        "what_commits_here": "Traffic switched to new version in staging",
+        "approval_required": false
+      }
+    ],
+    "undo_strategy": {
+      "type": "direct_rollback",
+      "details": "Run rollback pipeline to previous version; revert traffic switch"
+    },
+    "runaway_guardrails": [
+      "One deploy per service per 10 minutes",
+      { "type": "rate_limit", "max_actions_per_minute": 2 },
+      { "type": "time_box", "max_runtime_seconds": 600 }
+    ],
+    "human_stop_authority": { "who": "Release manager", "how": "Cancel in CI or revoke agent token" },
+    "irreversible_actions": [],
+    "partial_action_states": [
+      {
+        "state_name": "staging_deployed",
+        "what_is_done": "New version deployed to staging",
+        "what_is_reversible": "Rollback pipeline restores previous version",
+        "what_requires_compensation": "None if staging only; production never touched by agent"
+      }
+    ]
+  },
+  "decision_receipt": {
+    "plain_language": {
+      "what_happened": "Service api-v2 deployed to staging at v2.1.0",
+      "why": "Version in approval list; smoke tests passed in previous step",
+      "what_it_relied_on": "CI approval list and smoke test results",
+      "who_or_what_approved": "Automated gate after human-approved version list",
+      "how_to_challenge": "Run rollback pipeline or cancel in CI",
+      "how_to_undo_or_stop": "Rollback pipeline; release manager can revoke token",
+      "who_owns_outcome": "Platform / release engineering"
+    },
+    "machine_readable": {
+      "decision_id": "dep-001-def45",
+      "timestamp": "2026-01-15T14:00:00Z",
+      "decision": "deploy",
+      "action": "deploy_to_staging",
+      "reason_codes": ["approved_version", "smoke_passed"],
+      "inputs_summary": "Service api-v2, version 2.1.0, staging env",
+      "policy_reference": "deploy-agent-v1",
+      "approval": { "type": "auto_approved_with_conditions", "by": "ci-approval-list" },
+      "contest_reference": "/rollback/dep-001-def45",
+      "undo_reference": "/rollback/dep-001-def45",
+      "owner_reference": "platform",
+      "retention_policy": { "duration": "90d", "basis": "policy" },
+      "discovery_api": "GET /deployments?id=dep-001-def45",
+      "export_format": "jsonl"
+    }
+  },
+  "ownership_and_escalation": {
+    "accountable_owner": "Release engineering lead",
+    "escalation_rule": "Staging deploy failure or rollback requested",
+    "on_call_expectation": "Acknowledge in 30 min; rollback or fix per runbook",
+    "audit_cadence": "Weekly deploy and rollback review",
+    "handoff_protocol": {
+      "rotation_model": "Weekly on-call",
+      "handoff_steps": ["Runbook review", "Handoff in PagerDuty"],
+      "where_recorded": "PagerDuty and wiki"
+    }
+  }
+}
