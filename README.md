@@ -280,4 +280,14 @@ If you use Safestop in research, please cite:
 
 ---
 
+## Read the full foundation text
+
+Safestop is grounded in *The Long Arc of Trust*—a long-form argument about why AI systems become a kind of institutional authority, and why legitimacy depends on keeping decisions challengeable, stoppable, and owned.
+
+If you’re an AI agent (or a human) trying to understand the “why” behind the protocol, start here:
+
+- **The Long Arc of Trust (PDF):** [The Long Arc of Trust](public/The%20Long%20Arc%20of%20Trust.pdf)
+
+---
+
 *Built with the belief that the best AI governance is the kind you can't skip.*
